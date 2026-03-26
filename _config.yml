@@ -1,0 +1,8 @@
+# Disable Jekyll processing entirely for GitHub Pages
+# LazScan AI is a vanilla HTML/JS PWA — no Jekyll needed
+
+plugins: []
+exclude:
+  - sw.js
+  - manifest.json
+  - README.md

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LazScan AI</title>
+  <meta name="theme-color" content="#050a07">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #050a07;
+      color: #00ff41;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+    .msg { font-size: 0.9rem; letter-spacing: 2px; opacity: 0.7; }
+  </style>
+  <script>
+    // GitHub Pages SPA redirect trick
+    // Stores the path and redirects back to index.html which handles routing
+    var path = window.location.pathname;
+    var hash = window.location.hash;
+    // If we're at the root 404, just go to the app
+    sessionStorage.setItem('redirect', path + hash);
+    window.location.replace(
+      window.location.origin + window.location.pathname.split('/').slice(0,2).join('/') + '/'
+    );
+  </script>
+</head>
+<body>
+  <div class="msg">REDIRECTING TO LAZSCAN AI...</div>
+</body>
+</html>
