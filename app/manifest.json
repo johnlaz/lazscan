@@ -1,0 +1,23 @@
+{
+  "id": "/lazscan/app/",
+  "name": "LazScan AI — Intelligent Garage System",
+  "short_name": "LazScan AI",
+  "description": "OBD-II diagnostic PWA with Groq-powered AI analysis, NHTSA recall lookup, NFC component tags and printable reports.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f0f4f1",
+  "theme_color": "#f0f4f1",
+  "lang": "en-US",
+  "categories": ["automotive", "utilities", "productivity"],
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Quick Scan", "short_name": "Scan", "url": "./#scan", "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }] },
+    { "name": "Dev Notes", "short_name": "Notes", "url": "./#notes", "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }] }
+  ],
+  "prefer_related_applications": false
+}
