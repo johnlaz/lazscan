@@ -1,9 +1,9 @@
 // ============================================================
-//  LazScan AI — Service Worker
+//  LazScan — Service Worker
 //  Network-first HTML, cache-first assets, offline fallback
 // ============================================================
 
-const CACHE_NAME = 'lazscan-v1.0.1'; // keep in sync with VERSION in index.html
+const CACHE_NAME = 'lazscan-v2.0.1'; // keep in sync with VERSION in index.html
 const OFFLINE_URL = './index.html';
 
 // Assets to pre-cache on install
@@ -16,11 +16,11 @@ const PRECACHE_ASSETS = [
 ];
 
 // External CDN assets to cache on first use
-const CDN_CACHE_NAME = 'lazscan-cdn-v1.0.1';
+const CDN_CACHE_NAME = 'lazscan-cdn-v2.0.1';
 
 // ===== INSTALL =====
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing LazScan AI v1.0.1');
+  console.log('[SW] Installing LazScan v2.0.1');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -40,7 +40,7 @@ self.addEventListener('install', (event) => {
 
 // ===== ACTIVATE =====
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating LazScan AI');
+  console.log('[SW] Activating LazScan');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
