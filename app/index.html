@@ -364,6 +364,7 @@ button{cursor:pointer;background:none;border:0}
   <div class="card">
     <button class="row tap" id="rowReport"><div class="grow">Diagnostic report<small>Save or print a PDF of codes and live data</small></div><svg class="chev" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l6 6-6 6"/></svg></button>
     <button class="row tap" id="rowNotes"><div class="grow">Dev notes<small>Ideas, bugs and feature requests</small></div><svg class="chev" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l6 6-6 6"/></svg></button>
+    <button class="row tap" id="rowUpdate"><div class="grow">Check for updates<small>LazScan also checks automatically</small></div><svg class="chev" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l6 6-6 6"/></svg></button>
     <button class="row tap" id="rowInstall" hidden><div class="grow">Install app<small>Add LazScan to your home screen</small></div></button>
   </div>
 
@@ -410,7 +411,7 @@ button{cursor:pointer;background:none;border:0}
 //  LazScan — app logic
 //  Single file: ELM327 engine, UI, Groq, NHTSA, NFC.
 // ============================================================
-const VERSION = 'v2.8.0'; // keep in sync with CACHE_NAME in sw.js
+const VERSION = 'v2.9.0'; // keep in sync with CACHE_NAME in sw.js
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -1559,7 +1560,7 @@ function openTeslaMonitor() {
     } catch (e) { st.mon = null; try { await mon.stop(); } catch (e2) {} const m = friendlyError(e); chip(m ? 'bad' : '', m ? 'Failed' : 'Not connected'); if (m) $n('#tmRaw').textContent = m; btn.disabled = false; }
   };
   draw();
-  openSheet('Tesla pack monitor', n, () => { stop(); });
+  openSheet('Tesla pack monitor', n, () => { S.sheetHold = null; stop(); }); S.sheetHold = () => st.running;
 }
 $('rowTMon').addEventListener('click', openTeslaMonitor);
 
@@ -1815,15 +1816,53 @@ $('btnClearAll').addEventListener('click', async () => {
 // ============================================================
 //  SERVICE WORKER
 // ============================================================
+let swReg = null;
 function registerSW() {
   if (!('serviceWorker' in navigator)) return;
-  navigator.serviceWorker.register('./sw.js', { scope: './' }).then((reg) => {
-    reg.addEventListener('updatefound', () => {
-      const w = reg.installing; if (!w) return;
-      w.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) toast('Update ready. Reopen the app to apply.'); });
-    });
+  const hadCtl = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('./sw.js', { scope: './', updateViaCache: 'none' }).then((reg) => {
+    swReg = reg; reg.update().catch(() => {});
+    // look for a newer version when the app returns to the foreground, and every 30 minutes while open
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+    setInterval(() => reg.update().catch(() => {}), 30 * 60 * 1000);
   }).catch(() => {});
+  // The new worker takes over by itself. Reload only when nothing is in progress, never during a connection.
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadCtl || S.swReloaded) return; S.swReloaded = true;
+    const busy = S.mode !== 'idle' || $('sheetBg').classList.contains('open');
+    if (busy) toast('Update installed. Reopen the app to apply.', 'ok'); else location.reload();
+  });
 }
+$('rowUpdate').addEventListener('click', async () => {
+  if (!swReg) { toast('Updates are checked automatically when installed'); return; }
+  toast('Checking…');
+  try { await swReg.update(); } catch (e) { toast('Could not check. Are you offline?', 'bad'); return; }
+  setTimeout(() => { if (swReg.installing || swReg.waiting) toast('Update found. Installing…', 'ok'); else toast('You have the latest version (' + VERSION + ')', 'ok'); }, 1200);
+});
+
+// ============================================================
+//  BACK BUTTON GUARD
+//  One guard entry sits above the base entry. Back is always handled here: close a sheet, return to Scan,
+//  warn before leaving a live session, and only then exit. Never silently drops a connection.
+// ============================================================
+(function backGuard() {
+  history.replaceState({ lz: 'base' }, ''); history.pushState({ lz: 'guard' }, '');
+  let armed = 0;
+  const arm = (msg) => { armed = Date.now(); toast(msg); };
+  const fresh = () => Date.now() - armed < 2500;
+  window.addEventListener('popstate', () => {
+    if (history.state && history.state.lz === 'guard') return; // forward onto the guard: nothing to do
+    const sheetOpen = $('sheetBg').classList.contains('open');
+    const tab = (document.querySelector('.tab[aria-selected="true"]') || {}).dataset?.tab || 'scan';
+    const live = S.mode === 'connected' || S.mode === 'demo' || S.mode === 'connecting';
+    const hold = sheetOpen && S.sheetHold && S.sheetHold();
+    const stay = () => history.pushState({ lz: 'guard' }, '');
+    if (sheetOpen) { if (hold && !fresh()) { stay(); arm('Press back again to stop the monitor'); return; } stay(); closeSheet(); return; }
+    if (tab !== 'scan') { stay(); setTab('scan'); return; }
+    if (live && !fresh()) { stay(); arm('Press back again to leave. This ends the connection.'); return; }
+    history.back(); // nothing left to protect: leave the app
+  });
+})();
 
 // ============================================================
 //  INIT
