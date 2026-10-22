@@ -376,7 +376,7 @@ button{cursor:pointer;background:none;border:0}
 //  LazScan — app logic
 //  Single file: ELM327 engine, UI, Groq, NHTSA, NFC.
 // ============================================================
-const VERSION = 'v2.0.1'; // keep in sync with CACHE_NAME in sw.js
+const VERSION = 'v2.0.2'; // keep in sync with CACHE_NAME in sw.js
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -560,38 +560,84 @@ const BLE_SERVICES = [
   '0000fff0-0000-1000-8000-00805f9b34fb', '0000ffe0-0000-1000-8000-00805f9b34fb', '000018f0-0000-1000-8000-00805f9b34fb',
   'e7810a71-73ae-499d-8c15-faa9aef0c3f2', '0000ae00-0000-1000-8000-00805f9b34fb', '49535343-fe7d-4ae5-8fa9-9fafd205e455'
 ];
+const short = (u) => (u || '').replace(/^0000([0-9a-f]{4})-0000-1000-8000-00805f9b34fb$/i, '$1').toLowerCase();
+const stepErr = (step, e, extra) => Object.assign(e instanceof Error ? e : new Error(String(e)), { step, diag: extra || '' });
 class BleTransport {
-  constructor() { this.onData = () => {}; this.onClose = () => {}; this.dev = null; this.w = null; this.enc = new TextEncoder(); this.dec = new TextDecoder(); }
+  constructor() { this.onData = () => {}; this.onClose = () => {}; this.dev = null; this.w = null; this.enc = new TextEncoder(); this.dec = new TextDecoder(); this.diag = ''; }
   async connect() {
     // Short UUID strings like 'fff0' are rejected by Web Bluetooth, so full 128-bit UUIDs are used.
     this.dev = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: BLE_SERVICES });
     this.dev.addEventListener('gattserverdisconnected', () => this.onClose());
     this.name = this.dev.name || 'BLE adapter';
-    const server = await this.dev.gatt.connect();
-    let services = [];
-    try { services = await server.getPrimaryServices(); } catch (e) { /* none exposed */ }
-    let notify = null, write = null;
-    for (const svc of services) {
-      let chars = []; try { chars = await svc.getCharacteristics(); } catch (e) { continue; }
-      const n = chars.find((c) => c.properties.notify || c.properties.indicate);
-      const w = chars.find((c) => c.properties.write || c.properties.writeWithoutResponse);
-      if (n && w) { notify = n; write = w; break; }
+    // 1) GATT connect, with retries (Android often needs a second try right after the chooser closes)
+    let server, lastErr;
+    for (let i = 0; i < 3 && !server; i++) {
+      try { server = await this.dev.gatt.connect(); } catch (e) { lastErr = e; await sleep(500 * (i + 1)); }
     }
-    if (!notify || !write) throw Object.assign(new Error('no-serial'), { code: 'NO_SERIAL' });
-    this.w = write;
-    await notify.startNotifications();
-    notify.addEventListener('characteristicvaluechanged', (ev) => this.onData(this.dec.decode(ev.target.value)));
-    await sleep(250);
+    if (!server) throw stepErr('gatt-connect', lastErr);
+    await sleep(500); // let Android finish service discovery before touching characteristics
+    // 2) Discover every service/characteristic and rank the possible serial pairs
+    let services = [];
+    for (let i = 0; i < 3 && !services.length; i++) {
+      try { services = await server.getPrimaryServices(); } catch (e) { lastErr = e; }
+      if (!services.length) await sleep(400);
+    }
+    const cands = [], map = [];
+    for (const svc of services) {
+      let chars = [];
+      try { chars = await svc.getCharacteristics(); } catch (e) { map.push(short(svc.uuid) + ':err'); continue; }
+      const flag = (c) => ['notify', 'indicate', 'write', 'writeWithoutResponse', 'read'].filter((k) => c.properties[k]).map((k) => ({ notify: 'N', indicate: 'I', write: 'W', writeWithoutResponse: 'w', read: 'R' }[k])).join('');
+      map.push(short(svc.uuid) + '[' + chars.map((c) => short(c.uuid) + '=' + flag(c)).join(',') + ']');
+      const notifiers = chars.filter((c) => c.properties.notify || c.properties.indicate);
+      const writers = chars.filter((c) => c.properties.write || c.properties.writeWithoutResponse);
+      for (const n of notifiers) for (const w of writers) {
+        let score = 0;
+        const sid = short(svc.uuid);
+        if (sid === 'fff0' && short(n.uuid) === 'fff1' && short(w.uuid) === 'fff2') score += 100; // Veepeak / most ELM327 BLE clones
+        if (sid === 'ffe0' && n === w) score += 90;
+        if (sid === 'fff0') score += 40;
+        if (sid === 'ffe0') score += 35;
+        if (n.properties.notify) score += 5;
+        if (n === w) score += 2;
+        if (w.properties.writeWithoutResponse) score += 3;
+        cands.push({ svc, n, w, score });
+      }
+    }
+    this.diag = map.join(' ');
+    if (!cands.length) throw Object.assign(new Error('no-serial'), { code: 'NO_SERIAL', diag: this.diag });
+    cands.sort((a, b) => b.score - a.score);
+    // 3) Try each pair until notifications can actually be enabled
+    const errs = [];
+    for (const c of cands) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          await c.n.startNotifications();
+          this.handler = (ev) => this.onData(this.dec.decode(ev.target.value));
+          c.n.addEventListener('characteristicvaluechanged', this.handler);
+          this.w = c.w; this.n = c.n; this.used = short(c.svc.uuid) + '/' + short(c.n.uuid) + '/' + short(c.w.uuid);
+          await sleep(300);
+          return;
+        } catch (e) { errs.push(short(c.n.uuid) + ':' + (e.name || '') + ' ' + (e.message || '')); await sleep(300); }
+      }
+    }
+    throw stepErr('notify', new Error(errs[errs.length - 1] || 'could not enable notifications'), this.diag);
   }
   async write(str) {
     const data = this.enc.encode(str);
     for (let i = 0; i < data.length; i += 20) {
       const part = data.slice(i, i + 20);
-      if (this.w.properties.writeWithoutResponse && this.w.writeValueWithoutResponse) await this.w.writeValueWithoutResponse(part);
-      else await this.w.writeValue(part);
+      const p = this.w.properties;
+      const order = p.writeWithoutResponse && this.w.writeValueWithoutResponse ? ['nr', 'wr'] : ['wr', 'nr'];
+      let done = false, err;
+      for (const mode of order) {
+        if (mode === 'nr' && !(p.writeWithoutResponse && this.w.writeValueWithoutResponse)) continue;
+        if (mode === 'wr' && !p.write) continue;
+        try { if (mode === 'nr') await this.w.writeValueWithoutResponse(part); else await this.w.writeValue(part); done = true; break; } catch (e) { err = e; }
+      }
+      if (!done) throw err || new Error('write failed');
     }
   }
-  close() { try { if (this.dev && this.dev.gatt.connected) this.dev.gatt.disconnect(); } catch (e) {} }
+  close() { try { if (this.n && this.handler) this.n.removeEventListener('characteristicvaluechanged', this.handler); } catch (e) {} try { if (this.dev && this.dev.gatt.connected) this.dev.gatt.disconnect(); } catch (e) {} }
 }
 
 // Demo adapter: behaves like an ELM327 so the same engine and parsers run end to end.
@@ -764,11 +810,11 @@ function friendlyError(e) {
   if (!e) return 'Something went wrong.';
   if (e.name === 'NotFoundError') return null; // user closed the chooser
   if (e.name === 'SecurityError' || e.name === 'NotAllowedError') return 'Bluetooth permission was denied. Allow Bluetooth for this site and try again.';
-  if (e.code === 'NO_SERIAL') return 'That device connected but does not look like an OBD-II adapter (no serial service found). Pick the adapter itself, and make sure it is not paired to another phone.';
+  if (e.code === 'NO_SERIAL') return 'That device connected but does not look like an OBD-II adapter (no serial service found). Pick the adapter itself, and make sure it is not paired to another phone.' + (e.diag ? ' [GATT: ' + e.diag + ']' : '');
   if (e.code === 'NO_ECU') return 'The adapter answered but the car did not. Turn the ignition ON (engine running is best), check the adapter is fully seated, then try again.';
   if (e.code === 'NO_ANSWER') return 'The adapter did not respond. Unplug it for 10 seconds, plug it back in and try again.';
   if (e.name === 'NetworkError') return 'Bluetooth connection failed. Move closer to the adapter and try again.';
-  return 'Connection failed: ' + (e.message || e.name || 'unknown error');
+  return 'Connection failed' + (e.step ? ' at ' + e.step : '') + ': ' + (e.message || e.name || 'unknown error') + (e.diag ? ' [GATT: ' + e.diag + ']' : '');
 }
 
 async function connectAdapter() {

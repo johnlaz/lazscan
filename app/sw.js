@@ -3,7 +3,7 @@
 //  Network-first HTML, cache-first assets, offline fallback
 // ============================================================
 
-const CACHE_NAME = 'lazscan-v2.0.1'; // keep in sync with VERSION in index.html
+const CACHE_NAME = 'lazscan-v2.0.2'; // keep in sync with VERSION in index.html
 const OFFLINE_URL = './index.html';
 
 // Assets to pre-cache on install
@@ -16,11 +16,11 @@ const PRECACHE_ASSETS = [
 ];
 
 // External CDN assets to cache on first use
-const CDN_CACHE_NAME = 'lazscan-cdn-v2.0.1';
+const CDN_CACHE_NAME = 'lazscan-cdn-v2.0.2';
 
 // ===== INSTALL =====
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing LazScan v2.0.1');
+  console.log('[SW] Installing LazScan v2.0.2');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
