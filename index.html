@@ -68,10 +68,10 @@ footer{border-top:1px solid var(--line);padding:28px 0 44px;color:var(--ink3);fo
 
  <header class="hero">
   <div>
-   <span class="pill"><i></i>Beta · tested on a simulated adapter, real-car testing under way</span>
+   <span class="pill"><i></i>Beta · now running on a real car, Tesla tools in testing</span>
    <h1>Plug in. Scan. <span>Ask your AI mechanic.</span></h1>
    <p class="lead">LazScan reads fault codes and live data from a Bluetooth OBD-II adapter, explains what they mean, and tells you what to check first. Free, installable, no app store.</p>
-   <div class="cta"><a class="btn" href="./app/">Launch LazScan</a><a class="btn t" href="#how">How it works</a></div>
+   <div class="cta"><a class="btn" href="./app/">Launch LazScan</a><a class="btn t" href="#how">How it works</a><a class="btn t" href="#tesla">Tesla tools</a></div>
    <p class="small">Works in Chrome on Android and desktop, and in Bluefy on iPhone. Demo mode needs no adapter.</p>
   </div>
   <div class="shots" aria-label="App screenshots">
@@ -104,12 +104,23 @@ footer{border-top:1px solid var(--line);padding:28px 0 44px;color:var(--ink3);fo
   </div>
  </section>
 
+ <section id="tesla">
+  <div class="eyebrow">New · Tesla tools (beta)</div>
+  <h2>Check a Tesla's battery before you buy it, or watch your own.</h2>
+  <div class="grid">
+   <div class="card"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3M7 12h4"/></svg></div><h3>Used-car estimate</h3><p>Pick the model and trim, then enter the range and battery % shown on the screen. LazScan estimates battery health against the rated range. No adapter needed.</p></div>
+   <div class="card"><div class="ico o"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16a8 8 0 1 1 16 0"/><path d="M12 16l4-5"/></svg></div><h3>Pack monitor</h3><p>Live pack voltage, current and power, the car's own energy report, a capacity-from-charge measurement and the 12 V rail. Listens only; it never sends commands to the car.</p></div>
+   <div class="card"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l9.5 16h-19z"/><path d="M12 10v4.5"/></svg></div><h3>Alert lookup</h3><p>Type a code from Service Mode → Service Alerts and get the subsystem, a search link and a LazAI explanation. LazScan cannot read stored alert codes from the car itself.</p></div>
+  </div>
+  <p class="small" style="margin-top:14px">Needs a BLE adapter and a Tesla diagnostic cable for the pack monitor. Built and tested on a 2016 Model X 75D. Classic Bluetooth adapters such as the OBDLink LX cannot be used by a browser.</p>
+ </section>
+
  <section>
   <div class="two">
-   <div class="card note"><h3>Honest status</h3><p>The adapter engine (ELM327 setup, VIN, fault codes and live PIDs) is built and has been tested end to end against a simulated adapter. It has not yet been run against a wide range of real cars and adapters, so expect rough edges. Try Demo Mode first, and tell us which adapter and car you used.</p></div>
+   <div class="card note"><h3>Honest status</h3><p>The adapter connection and the Tesla tools have been run on a real car with a Veepeak OBDCheck BLE adapter. Generic OBD-II reading has only been proven end to end against a simulated adapter, and Tesla battery numbers are estimates, not an official battery test. Expect rough edges, try Demo Mode first, and tell us which adapter and car you used.</p></div>
    <div class="card"><h3>Works with</h3>
     <table><thead><tr><th>Adapters (BLE, ELM327 style)</th><th>Browsers</th></tr></thead>
-    <tbody><tr><td>OBDLink CX</td><td rowspan="3">Chrome (Android, desktop)<br>Edge (Windows)<br>Bluefy (iPhone)</td></tr><tr><td>Vgate iCar Pro</td></tr><tr><td>vLinker MC+</td></tr></tbody></table>
+    <tbody><tr><td>Veepeak OBDCheck BLE (tested)</td><td rowspan="4">Chrome (Android, desktop)<br>Edge (Windows)<br>Bluefy (iPhone)</td></tr><tr><td>OBDLink CX</td></tr><tr><td>Vgate iCar Pro</td></tr><tr><td>vLinker MC+</td></tr></tbody></table>
     <p style="font-size:13.5px;color:var(--ink3);margin-top:10px">On iPhone, do not pair the adapter in system Bluetooth settings.</p></div>
   </div>
  </section>
