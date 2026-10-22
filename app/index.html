@@ -198,6 +198,26 @@ button{cursor:pointer;background:none;border:0}
 .foot-legal a{color:inherit}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (min-width:700px){.tiles{grid-template-columns:repeat(6,1fr)}}
+
+/* tesla tools */
+.tm-gauge{width:100%;max-width:300px;margin:0 auto;display:block}
+.tm-bar{position:relative;height:16px;border-radius:99px;background:var(--sunk);overflow:hidden;margin:10px 0 6px}
+.tm-bar i{position:absolute;top:0;bottom:0;border-radius:0}
+.tm-bar b{position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;background:var(--label3)}
+.tm-lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--label2)}
+.tm-big{font:700 44px/1 var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-1px}
+.tm-note{font-size:13px;color:var(--label2);margin:10px 4px 0}
+.tm-raw{font:12px var(--mono);color:var(--label3);margin-top:8px;overflow-wrap:anywhere}
+.te-band{display:flex;height:10px;border-radius:99px;overflow:hidden;margin:14px 0 4px}
+.te-band span{flex:1}.te-band{position:relative}.te-tick{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--label)}
+.te-mark{position:relative;height:14px}
+.te-mark i{position:absolute;top:0;width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:10px solid var(--label);transform:translateX(-50%)}
+.te-lab{position:relative;height:16px;font-size:11px;color:var(--label3);margin-bottom:2px}.te-lab span{position:absolute;transform:translateX(-50%)}.te-lab span:first-child{transform:none}.te-lab span:last-child{transform:translateX(-100%)}
+.te-in{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.te-in .field{flex-direction:column;align-items:stretch;gap:6px}
+.te-in .field label{font-size:13px;color:var(--label2);font-weight:500}
+.te-in .field input{background:var(--sunk);text-align:left;border-radius:10px;padding:11px 12px}
+.te-in .field.full{grid-column:1/-1}
 </style>
 </head>
 <body>
@@ -220,6 +240,8 @@ button{cursor:pointer;background:none;border:0}
       <button class="btn plain" id="btnDemo">Try Demo Mode</button>
     </div>
   </div>
+
+  <div class="card" style="margin-top:12px"><button class="row tap" id="rowTesla"><div class="grow"><b>Tesla tools</b><small>Battery monitor, used-car estimate, alert lookup</small></div><svg class="chev" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l6 6-6 6"/></svg></button></div>
 
   <div id="liveArea" hidden>
     <div class="sect">Vehicle</div>
@@ -343,6 +365,16 @@ button{cursor:pointer;background:none;border:0}
     <button class="row tap" id="rowInstall" hidden><div class="grow">Install app<small>Add LazScan to your home screen</small></div></button>
   </div>
 
+  <div class="sect">Tesla</div>
+  <div class="card"><button class="row tap" id="rowTesla2"><div class="grow">Tesla tools<small>Pack monitor, used-car estimate, alert lookup, advanced CAN tools</small></div><svg class="chev" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l6 6-6 6"/></svg></button></div>
+  <div id="tHidden" hidden>
+    <button class="row tap" id="rowTMon"><div class="grow">Pack monitor<small>Live pack voltage, current and power. Needs a Tesla diagnostic cable.</small></div><svg class="chev" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l6 6-6 6"/></svg></button>
+    <button class="row tap" id="rowTAlert"><div class="grow">Tesla alert lookup<small>Type a code from Service Mode → Service Alerts. LazAI helps explain it.</small></div><svg class="chev" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l6 6-6 6"/></svg></button>
+    <button class="row tap" id="rowTEst"><div class="grow">Used Tesla battery estimate<small>Estimate health from the range and % on any Tesla's screen. No adapter needed.</small></div><svg class="chev" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l6 6-6 6"/></svg></button>
+    <button class="row tap" id="rowLog"><div class="grow">CAN logger<small>Capture every message the car sends (about 4 min) to find the battery capacity message.</small></div><svg class="chev" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l6 6-6 6"/></svg></button>
+    <button class="row tap" id="rowProbe"><div class="grow">CAN probe<small>Check which messages your adapter can hear on a Tesla. Read-only.</small></div><svg class="chev" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l6 6-6 6"/></svg></button>
+  </div>
+
   <div class="sect">About</div>
   <div class="card">
     <div class="row"><div class="grow">Version</div><span class="val mono" id="verText"></span></div>
@@ -376,7 +408,7 @@ button{cursor:pointer;background:none;border:0}
 //  LazScan — app logic
 //  Single file: ELM327 engine, UI, Groq, NHTSA, NFC.
 // ============================================================
-const VERSION = 'v2.0.2'; // keep in sync with CACHE_NAME in sw.js
+const VERSION = 'v2.6.0'; // keep in sync with CACHE_NAME in sw.js
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -729,6 +761,7 @@ function closeSheet() {
   $('sheetBg').classList.remove('open');
   if (sheetReturn && sheetReturn.focus) sheetReturn.focus();
   const cb = S.sheetOnClose; S.sheetOnClose = null; if (cb) cb();
+  if (S.backToHub) { S.backToHub = false; setTimeout(openTeslaHub, 0); }
 }
 $('sheetClose').addEventListener('click', closeSheet);
 $('sheetBg').addEventListener('click', (e) => { if (e.target === $('sheetBg')) closeSheet(); });
@@ -743,6 +776,7 @@ function confirmSheet(title, msg, label, danger) {
     openSheet(title, n, () => { if (!done) { done = true; resolve(false); } });
   });
 }
+const CHEV = '<svg class="chev" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l6 6-6 6"/></svg>';
 const I = {
   warn: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l9.5 16h-19z"/><path d="M12 10v4.5M12 17.4v.1"/></svg>',
   check: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.6 2.6L16 9.5"/></svg>',
@@ -1213,6 +1247,504 @@ $('rowNotes').addEventListener('click', () => {
   n.querySelector('#nAdd').onclick = () => { const t = n.querySelector('#nText').value.trim(); if (!t) return; const notes = jsGet('notes', []); notes.push({ type: n.querySelector('#nType').value, text: t, date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }); jsSet('notes', notes); n.querySelector('#nText').value = ''; draw(); };
   draw(); openSheet('Dev notes', n);
 });
+
+// ============================================================
+//  TESLA CAN PROBE (beta, read-only)
+//  Listens to the car's CAN bus with ELM327 monitor mode (ATMA). It never transmits.
+//  Purpose: find out whether this adapter can keep up with Tesla traffic before building battery views.
+// ============================================================
+async function runCanProbe(ids, secs, out) {
+  const log = (m) => { out.value += m + '\n'; out.scrollTop = out.scrollHeight; };
+  if (S.transport) { teardown(); setMode('idle'); } // free the adapter if a normal session is open
+  const t = new BleTransport();
+  let dead = false; t.onClose = () => { dead = true; };
+  let rx = '';
+  t.onData = (x) => { rx += x; };
+  await t.connect();
+  log('Adapter: ' + t.name + '  (' + (t.used || '?') + ')');
+  try { await t.write('\r'); } catch (e) {} await sleep(400); rx = ''; // stop any monitor left running by an earlier session
+  const waitPrompt = (ms) => new Promise((res) => {
+    const t0 = Date.now();
+    const iv = setInterval(() => {
+      const i = rx.indexOf('>');
+      if (i >= 0) { clearInterval(iv); const o = rx.slice(0, i); rx = rx.slice(i + 1); res(o); }
+      else if (dead || Date.now() - t0 > ms) { clearInterval(iv); const o = rx; rx = ''; res(o + ' [no prompt]'); }
+    }, 40);
+  });
+  const cmd = async (c, ms = 3000) => { rx = ''; await t.write(c + '\r'); return (await waitPrompt(ms)).replace(/[\r\n]+/g, ' ').trim(); };
+  try {
+    log('ATZ → ' + (await cmd('ATZ', 5000)).replace(/[^\x20-\x7E]/g, ''));
+    for (const c of ['ATE0', 'ATL0', 'ATS1', 'ATH1', 'ATD0', 'ATCAF0', 'ATSP6']) { const r = await cmd(c); if (!/OK/.test(r)) log(c + ' → ' + r); }
+    log('Adapter voltage (ATRV) → ' + await cmd('ATRV'));
+    const FRAME = /^([0-9A-F]{3})((?: [0-9A-F]{2}){1,8})$/;
+    async function monitor(label, filt, seconds) {
+      if (dead) throw new Error('Adapter disconnected');
+      // Clones differ: a bare ATCRA often does NOT clear the filter, so set/clear receive address, mask and filter explicitly.
+      const setup = filt ? ['ATCRA ' + filt, 'ATCM 7FF', 'ATCF ' + filt] : ['ATCRA', 'ATCM 000', 'ATCF 000'];
+      for (const c of setup) { const r = await cmd(c); if (!/OK/.test(r)) log('  ' + c + ' → ' + r); }
+      rx = '';
+      const st = { frames: 0, ids: {}, errs: {}, sample: '', smp: {} }; let pend = '';
+      const eat = (chunk) => {
+        pend += chunk; const lines = pend.split(/[\r\n]+/); pend = lines.pop();
+        for (let ln of lines) {
+          ln = ln.replace(/>/g, '').trim(); if (!ln || /^ATMA|^OK$|^SEARCHING/i.test(ln)) continue;
+          const m = ln.match(FRAME);
+          if (m) { st.frames++; st.ids[m[1]] = (st.ids[m[1]] || 0) + 1; if (!st.sample) st.sample = ln; const a = st.smp[m[1]] || (st.smp[m[1]] = []); if (a.length < 4 && !a.includes(ln)) a.push(ln); }
+          else { const k = /BUFFER FULL/i.test(ln) ? 'BUFFER FULL' : /DATA ERROR/i.test(ln) ? 'DATA ERROR' : /CAN ERROR/i.test(ln) ? 'CAN ERROR' : /STOPPED/i.test(ln) ? null : /^\?/.test(ln) ? '?' : 'other'; if (k) st.errs[k] = (st.errs[k] || 0) + 1; }
+        }
+      };
+      const t0 = Date.now();
+      await t.write('ATMA\r');
+      while (Date.now() - t0 < seconds * 1000 && !dead) { await sleep(100); const c = rx; rx = ''; eat(c); }
+      const el = (Date.now() - t0) / 1000;
+      await t.write('\r'); // any character stops monitor mode
+      const t1 = Date.now(); while (Date.now() - t1 < 2500) { await sleep(60); const c = rx; rx = ''; eat(c); if (c.includes('>')) break; }
+      eat('\r');
+      st.fps = Math.round(st.frames / el); st.label = label;
+      const errTxt = Object.keys(st.errs).length ? '  ERRORS: ' + Object.entries(st.errs).map(([k, v]) => k + '×' + v).join(', ') : '';
+      log(label.padEnd(14) + st.frames + ' frames, ' + st.fps + '/s, ' + Object.keys(st.ids).length + ' IDs' + errTxt);
+      if (filt) for (const l of (st.smp[filt] || [])) log('    ' + l);
+      return st;
+    }
+    log('\n— Filtered listening (' + secs + 's each) —');
+    const filtered = [];
+    for (const id of ids) filtered.push(await monitor('ID ' + id, id, secs));
+    log('\n— All traffic (stress test, ' + secs + 's) —');
+    const all = await monitor('All IDs', null, secs);
+    const top = Object.entries(all.ids).sort((a, b) => b[1] - a[1]).slice(0, 14).map(([k, v]) => k + '×' + v).join('  ');
+    if (top) log('Busiest IDs seen: ' + top);
+    if (all.sample) log('Sample frame: ' + all.sample);
+    const bestF = filtered.reduce((m, f) => (f.fps > m.fps ? f : m), { fps: 0 });
+    if (bestF.fps > 0 && all.fps < bestF.fps * 0.8 && !Object.keys(all.errs).length) log('NOTE: the all-traffic test saw fewer frames than a single filtered ID did, so the adapter did not clear its filter. Ignore the stress-test numbers and the busiest-IDs list.');
+    // verdict
+    const seen = filtered.filter((f) => f.frames > 0), filtErr = filtered.some((f) => Object.keys(f.errs).length), allErr = Object.keys(all.errs).length > 0;
+    log('\n— Result —');
+    if (!all.frames && !seen.length) log('NO TRAFFIC. The car is probably asleep (wake it: open a door, or have it charging/in drive), or the cable is on the wrong bus. This does not say anything about the adapter yet.');
+    else if (seen.length && !filtErr) log('PASS: the adapter received ' + seen.map((f) => f.label.replace('ID ', '') + ' (' + f.fps + '/s)').join(', ') + ' cleanly while filtered. Tesla battery views look feasible with this adapter.' + (allErr ? ' Unfiltered it overflowed, as expected, so the app must always filter.' : ''));
+    else if (seen.length) log('PARTIAL: messages arrived but the adapter reported errors even while filtered. It may be too slow for more than one or two IDs at a time.');
+    else if (all.frames) log('INCONCLUSIVE: traffic exists (' + all.fps + '/s unfiltered) but none of the IDs you tried appeared. Try IDs from the "Busiest IDs" line.');
+    else log('FAIL: no messages got through.');
+  } finally { try { await t.write('\r'); } catch (e) {} t.close(); }
+}
+$('rowProbe').addEventListener('click', () => {
+  const n = html(`<p style="color:var(--label2);margin:4px 0 12px">Plug the adapter into your Tesla's diagnostic cable and wake the car (open a door, or have it charging). This only listens; it sends nothing to the car. It will disconnect any normal LazScan session.</p>
+  <div class="card pad stack">
+    <div class="field"><label for="pbIds">Message IDs to listen for (hex, comma separated)</label><input id="pbIds" class="input mono" value="102, 292, 352" autocapitalize="characters" autocomplete="off" spellcheck="false"></div>
+    <div class="field"><label for="pbSecs">Seconds per test</label><select id="pbSecs" class="input"><option>3</option><option selected>5</option><option>8</option></select></div>
+    <button class="btn" id="pbRun">Run probe</button>
+  </div>
+  <textarea id="pbOut" class="input mono" rows="14" readonly style="margin-top:12px;font-size:12px;width:100%" placeholder="Results appear here."></textarea>
+  <div class="stack" style="margin-top:10px"><button class="btn tint" id="pbCopy">Copy results</button></div>
+  <p class="foot">The default IDs are guesses from community Tesla CAN lists. "Busiest IDs" in the results shows what your car really sends.</p>`);
+  const out = n.querySelector('#pbOut'), run = n.querySelector('#pbRun');
+  run.onclick = async () => {
+    const ids = n.querySelector('#pbIds').value.split(/[\s,]+/).map((x) => x.trim().toUpperCase().replace(/^0X/, '').padStart(3, '0')).filter((x) => /^[0-9A-F]{3}$/.test(x)).slice(0, 8);
+    if (!navigator.bluetooth) { out.value = 'This browser cannot use Web Bluetooth.'; return; }
+    if (!ids.length) { out.value = 'Enter at least one 3-digit hex ID, e.g. 352.'; return; }
+    out.value = 'LazScan ' + VERSION + ' CAN probe\n'; run.disabled = true; run.textContent = 'Running…';
+    try { await runCanProbe(ids, +n.querySelector('#pbSecs').value, out); }
+    catch (e) { const m = friendlyError(e); out.value += '\n' + (m || 'No adapter selected.') + '\n'; }
+    run.disabled = false; run.textContent = 'Run again';
+  };
+  n.querySelector('#pbCopy').onclick = async () => { try { await navigator.clipboard.writeText(out.value); toast('Copied', 'ok'); } catch (e) { out.select(); toast('Select and copy the text'); } };
+  openSheet('Tesla CAN probe', n);
+});
+
+// ============================================================
+//  TESLA: LIVE PACK MONITOR (beta) + USED-TESLA ESTIMATE
+//  The monitor only listens to CAN message 0x102. The decode below is UNVERIFIED:
+//  bytes 0-1 = pack voltage (x0.01 V), bytes 2-3 = smoothed current (signed, x0.1 A).
+// ============================================================
+const TM_ID = '102', TM_BMS = '382', TM_KWH = '3D2', TM_FRAME = /^([0-9A-F]{3})((?: [0-9A-F]{2}){1,8})$/;
+class CanMonitor {
+  constructor() { this.t = null; this.rx = ''; this.pend = ''; this.mon = false; this.dead = false; this.onFrame = () => {}; this.onEnd = () => {}; }
+  _data(x) {
+    if (!this.mon) { this.rx += x; return; }
+    this.pend += x; const lines = this.pend.split(/[\r\n]+/); this.pend = lines.pop();
+    for (const ln of lines) { const m = ln.replace(/>/g, '').trim().match(TM_FRAME); if (m) this.onFrame(m[1], m[2].trim().split(' ').map((h) => parseInt(h, 16))); }
+  }
+  async cmd(c, ms = 3000) {
+    this.rx = ''; await this.t.write(c + '\r');
+    const t0 = Date.now();
+    while (Date.now() - t0 < ms && !this.dead) { const i = this.rx.indexOf('>'); if (i >= 0) { const o = this.rx.slice(0, i); this.rx = ''; return o.replace(/[\r\n]+/g, ' ').trim(); } await sleep(40); }
+    return '';
+  }
+  async open() {
+    const t = this.t = new BleTransport();
+    t.onClose = () => { this.dead = true; if (this.mon) { this.mon = false; this.onEnd('Adapter disconnected'); } };
+    t.onData = (x) => this._data(x);
+    await t.connect(); this.name = t.name;
+    try { await t.write('\r'); } catch (e) {} await sleep(400); this.rx = '';
+    await this.cmd('ATZ', 5000);
+    for (const c of ['ATE0', 'ATL0', 'ATS1', 'ATH1', 'ATD0', 'ATCAF0', 'ATSP6']) await this.cmd(c);
+  }
+  async start(id) {
+    for (const c of ['ATCRA ' + id, 'ATCM 7FF', 'ATCF ' + id]) await this.cmd(c);
+    this.pend = ''; this.mon = true; await this.t.write('ATMA\r');
+  }
+  async startMasked(filter, mask) {
+    for (const c of ['ATCM ' + mask, 'ATCF ' + filter]) await this.cmd(c);
+    this.pend = ''; this.mon = true; await this.t.write('ATMA\r');
+  }
+  async halt() { // stop monitoring but keep the connection open
+    this.mon = false; this.rx = '';
+    try { await this.t.write('\r'); } catch (e) { return; }
+    const t0 = Date.now(); while (Date.now() - t0 < 1500 && !this.dead && !this.rx.includes('>')) await sleep(30);
+    this.rx = '';
+  }
+  async stop() {
+    const was = this.mon; this.mon = false;
+    if (this.t) { try { if (was) await this.t.write('\r'); } catch (e) {} await sleep(250); this.t.close(); }
+  }
+}
+const tmBits = (b, st, w) => { let v = 0; for (let i = 0; i < w; i++) { const p = st + i; v += ((b[p >> 3] >> (p & 7)) & 1) * 2 ** i; } return v; };
+// Candidate decodes (UNVERIFIED labels, borrowed from a similar Tesla layout):
+//  0x382: five 11-bit fields at 0.1 kWh: full pack, remaining, expected remaining, ideal remaining, to-finish-charge; then a 9-bit reserve.
+//  0x3D2: two 32-bit lifetime counters at 0.001 kWh (bytes 0-3 charged, bytes 4-7 discharged).
+const tmEnergy = (b) => { if (b.length < 8) return null; const e = { full: tmBits(b, 0, 11) / 10, rem: tmBits(b, 11, 11) / 10, exp: tmBits(b, 22, 11) / 10, ideal: tmBits(b, 33, 11) / 10, toChg: tmBits(b, 44, 11) / 10, buf: tmBits(b, 55, 9) / 10 }; return e.full >= 20 && e.full <= 150 && e.rem <= e.full + 1 ? e : null; };
+const tmLife = (b) => (b.length < 8 ? null : { chg: ((b[0] | (b[1] << 8) | (b[2] << 16) | (b[3] << 24)) >>> 0) / 1000, dis: ((b[4] | (b[5] << 8) | (b[6] << 16) | (b[7] << 24)) >>> 0) / 1000 });
+const tmDecode = (b) => (b.length < 4 ? null : { v: (b[0] | (b[1] << 8)) / 100, a: (((b[2] | (b[3] << 8)) << 16) >> 16) / 10 });
+const polar = (cx, cy, r, deg) => [cx + r * Math.cos((deg - 90) * Math.PI / 180), cy + r * Math.sin((deg - 90) * Math.PI / 180)];
+const arcPath = (cx, cy, r, a0, a1) => { const [x0, y0] = polar(cx, cy, r, a0), [x1, y1] = polar(cx, cy, r, a1); return `M${x0.toFixed(1)} ${y0.toFixed(1)}A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`; };
+
+function openTeslaMonitor() {
+  if (S.transport) { teardown(); setMode('idle'); }
+  const VMIN = 250, VMAX = 400;
+  const st = { v: null, a: null, raw: '', hist: [], acc: { v: 0, p: 0, n: 0 }, whIn: 0, whOut: 0, last: 0, lastFrame: 0, frames: 0, running: false, tick: null, mon: null, en: null, life: null, rem0: null, enT: 0 };
+  let cells = +lsGet('tesla_cells', '84'), chargePos = lsGet('tesla_sign', 'pos') === 'pos';
+  const n = html(`
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="chip" id="tmChip"><i></i><span id="tmChipT">Not connected</span></span><span class="mono" style="font-size:13px;color:var(--label2)" id="tmRate"></span></div>
+    <div class="card pad" style="margin-top:10px;text-align:center"><svg class="tm-gauge" id="tmGauge" viewBox="0 0 220 160" role="img" aria-label="Pack voltage gauge"></svg></div>
+    <div class="card" style="margin-top:10px"><div class="tiles">
+      <div class="tile"><div class="v" id="tmA">--</div><div class="u">amps</div><div class="l">Current</div></div>
+      <div class="tile"><div class="v" id="tmP">--</div><div class="u">kW</div><div class="l">Power</div></div>
+      <div class="tile"><div class="v" id="tmC">--</div><div class="u">volts</div><div class="l">Per cell</div></div>
+    </div>
+    <div style="padding:0 16px 14px"><div class="tm-bar"><i id="tmFill"></i><b></b></div><div class="tm-lbl"><span>Using power</span><span id="tmDir" style="font-weight:600;color:var(--label)">Idle</span><span>Charging</span></div></div></div>
+    <div class="card pad" style="margin-top:10px"><div class="sect" style="margin:0 0 6px">Last 3 minutes</div><svg id="tmChart" viewBox="0 0 300 110" style="width:100%;height:110px;display:block"></svg>
+      <div class="legend"><span><i style="background:var(--blue)"></i>Pack voltage</span><span><i style="background:var(--orange)"></i>Power</span></div></div>
+    <div class="card" style="margin-top:10px"><div class="vgrid"><div><span>12 V rail</span><b id="tm12">--</b></div><div><span>12 V status</span><b id="tm12s" style="font-size:14px">Waiting</b></div></div></div>
+    <div class="card" style="margin-top:10px"><div class="vgrid"><div><span>Energy in</span><b id="tmIn">0 Wh</b></div><div><span>Energy out</span><b id="tmOut">0 Wh</b></div></div></div>
+    <div class="card pad stack" style="margin-top:10px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><div class="sect" style="margin:0">Battery energy report</div><span class="badge low">BETA</span></div>
+      <div id="tmEn" style="text-align:center"></div>
+      <div class="field"><label for="tmNF">Full pack when new (kWh)</label><input id="tmNF" class="input" inputmode="decimal" placeholder="75" style="text-align:right"></div>
+    </div>
+    <div class="card pad stack" style="margin-top:10px">
+      <div class="sect" style="margin:0">Capacity from this charge</div>
+      <p style="font-size:13px;color:var(--label2)">Start the monitor, note the battery % on the car's screen, then charge. Enter both percentages. A bigger span gives a better result.</p>
+      <div class="te-in">
+        <div class="field"><label for="tmS">% at start</label><input id="tmS" class="input" inputmode="decimal" placeholder="40"></div>
+        <div class="field"><label for="tmE">% now</label><input id="tmE" class="input" inputmode="decimal" placeholder="80"></div>
+        <div class="field full"><label for="tmN">Usable capacity when new (kWh), optional</label><input id="tmN" class="input" inputmode="decimal" placeholder="leave blank if unsure"></div>
+      </div>
+      <div id="tmCap" style="text-align:center;padding:4px 0"></div>
+    </div>
+    <div class="card pad stack" style="margin-top:10px">
+      <div class="field"><label for="tmCells">Pack type</label><select id="tmCells"><option value="84">84 cells (70/75 kWh)</option><option value="96">96 cells (85/90/100)</option></select></div>
+      <div class="seg" id="tmSign" role="group" aria-label="Current direction"><button data-v="pos" aria-pressed="true">Charging is +</button><button data-v="neg" aria-pressed="false">Charging is −</button></div>
+      <button class="btn" id="tmGo">Connect &amp; start</button>
+    </div>
+    <p class="tm-note">Beta. The decode of message 0x102 is a best guess: if power looks backwards, flip the direction switch. Check voltage against another source before relying on it. Read-only. The 12 V reading comes from the adapter's own voltage sensor (about every 30 s, with a one-second data gap). Voltage only, not battery health.</p>
+    <div class="tm-raw" id="tmRaw"></div>`);
+  const $n = (q) => n.querySelector(q);
+  $n('#tmCells').value = String(cells); $n('#tmN').value = lsGet('tesla_new2', '');
+  $n('#tmN').addEventListener('input', () => lsSet('tesla_new2', $n('#tmN').value));
+  $n('#tmNF').value = lsGet('tesla_newfull', ''); $n('#tmNF').addEventListener('input', () => { lsSet('tesla_newfull', $n('#tmNF').value); drawEn(); });
+  const syncSeg = () => $n('#tmSign').querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.v === 'pos') === chargePos)));
+  syncSeg();
+  $n('#tmCells').onchange = (e) => { cells = +e.target.value; lsSet('tesla_cells', String(cells)); draw(); };
+  $n('#tmSign').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; chargePos = b.dataset.v === 'pos'; lsSet('tesla_sign', b.dataset.v); syncSeg(); st.hist.forEach((h) => (h.p = h.v * h.a * (chargePos ? 1 : -1) / 1000)); draw(); };
+  const chip = (cls, text) => { $n('#tmChip').className = 'chip ' + cls; $n('#tmChipT').textContent = text; };
+  const pwr = () => (st.v == null || st.a == null ? null : st.v * st.a * (chargePos ? 1 : -1) / 1000);
+
+  function drawChart() {
+    const h = st.hist; if (h.length < 2) { $n('#tmChart').innerHTML = `<text x="150" y="58" text-anchor="middle" fill="var(--label3)" font-size="12">Waiting for data…</text>`; return; }
+    const line = (key, lo, hi, color) => { const pts = h.map((d, i) => `${(i / Math.max(59, h.length - 1) * 300).toFixed(1)},${(104 - (Math.min(hi, Math.max(lo, d[key])) - lo) / (hi - lo) * 98).toFixed(1)}`).join(' '); return `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`; };
+    const vs = h.map((d) => d.v), ps = h.map((d) => d.p);
+    const vlo = Math.floor(Math.min(...vs) - 1), vhi = Math.max(vlo + 4, Math.ceil(Math.max(...vs) + 1));
+    const pm = Math.max(5, Math.ceil(Math.max(...ps.map(Math.abs)) / 5) * 5);
+    $n('#tmChart').innerHTML = `<line x1="0" x2="300" y1="55" y2="55" stroke="var(--sep)" stroke-dasharray="3 4"/>` + line('v', vlo, vhi, 'var(--blue)') + line('p', -pm, pm, 'var(--orange)') +
+      `<text x="2" y="10" font-size="9" fill="var(--label3)">${vhi} V · +${pm} kW</text><text x="2" y="108" font-size="9" fill="var(--label3)">${vlo} V · -${pm} kW</text>`;
+  }
+  function draw() {
+    const v = st.v, a = st.a, p = pwr();
+    const f = v == null ? 0 : Math.min(1, Math.max(0, (v - VMIN) / (VMAX - VMIN)));
+    const [tx, ty] = polar(110, 110, 84, -120 + 240 * f);
+    $n('#tmGauge').innerHTML = `<path d="${arcPath(110, 110, 84, -120, 120)}" fill="none" stroke="var(--sunk)" stroke-width="16" stroke-linecap="round"/>` +
+      (v == null ? '' : `<path d="${arcPath(110, 110, 84, -120, -120 + Math.max(2, 240 * f))}" fill="none" stroke="var(--blue)" stroke-width="16" stroke-linecap="round"/><circle cx="${tx.toFixed(1)}" cy="${ty.toFixed(1)}" r="5" fill="var(--elev)"/>`) +
+      `<text x="110" y="108" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="40" fill="var(--label)">${v == null ? '--' : v.toFixed(1)}</text>` +
+      `<text x="110" y="128" text-anchor="middle" font-size="13" fill="var(--label2)">pack volts</text>` +
+      `<text x="30" y="154" text-anchor="middle" font-size="11" fill="var(--label3)">${VMIN}</text><text x="190" y="154" text-anchor="middle" font-size="11" fill="var(--label3)">${VMAX}</text>`;
+    $n('#tmA').textContent = a == null ? '--' : (a * (chargePos ? 1 : -1)).toFixed(1);
+    $n('#tmP').textContent = p == null ? '--' : p.toFixed(1);
+    $n('#tmC').textContent = v == null ? '--' : (v / cells).toFixed(3);
+    const fill = $n('#tmFill'), lim = Math.max(10, Math.ceil(Math.abs(p || 0) / 10) * 10), w = p == null ? 0 : Math.min(50, Math.abs(p) / lim * 50);
+    fill.style.cssText = p == null || Math.abs(p) < 0.15 ? 'display:none' : (p > 0 ? `left:50%;width:${w}%;background:var(--green)` : `right:50%;width:${w}%;background:var(--orange)`);
+    $n('#tmDir').textContent = p == null ? 'Idle' : Math.abs(p) < 0.15 ? 'Idle' : (p > 0 ? 'Charging ' : 'Using ') + Math.abs(p).toFixed(1) + ' kW';
+    $n('#tmIn').textContent = Math.round(st.whIn) + ' Wh'; $n('#tmOut').textContent = Math.round(st.whOut) + ' Wh';
+    $n('#tmRaw').textContent = st.raw ? 'Last frame: ' + st.raw : '';
+    capCalc(); drawEn();
+    drawChart();
+  }
+  function drawEn() {
+    const box = $n('#tmEn'), e = st.en, dim = 'color:var(--label3);font-size:14px';
+    if (!e) { box.innerHTML = `<span style="${dim}">${st.running ? 'Waiting for message 382 (about once a second)…' : 'Start the monitor to read the car’s own energy report.'}</span>`; return; }
+    const nw = parseFloat(String($n('#tmNF').value).replace(',', '.')), h = nw > 0 ? e.full / nw * 100 : null, usable = e.full - e.buf, pr = usable > 0 ? (e.rem - e.buf) / usable * 100 : 0;
+    const cell = (l, v) => `<div><span>${l}</span><b>${v.toFixed(1)} kWh</b></div>`;
+    const dr = st.rem0 != null ? e.rem - st.rem0 : null, net = (st.whIn - st.whOut) / 1000;
+    box.innerHTML = `<div class="tm-big">${e.full.toFixed(1)}<span style="font-size:18px"> kWh</span></div><div style="color:var(--label2);font-size:14px;margin-top:4px">full pack energy (as the car reports it)</div>` +
+      (h ? `<div style="font-weight:700;font-size:20px;margin-top:6px">${h.toFixed(0)}% of new (${nw} kWh)</div>` : `<div style="${dim};margin-top:6px">Enter the full-pack figure from when the car was new to get a percentage.</div>`) +
+      `<div class="vgrid" style="margin-top:12px;text-align:left">${cell('Remaining', e.rem)}${cell('Usable now', e.rem - e.buf)}${cell('Expected remaining', e.exp)}${cell('Ideal remaining', e.ideal)}${cell('Reserve', e.buf)}${cell('Usable when full', usable)}<div><span>Charge level</span><b>${pr.toFixed(1)}%</b></div><div><span>Field 5 (unknown)</span><b>${e.toChg.toFixed(1)}</b></div></div>` +
+      (dr != null && Math.abs(net) > 0.05 ? `<div style="${dim};margin-top:10px;text-align:left">Check: the car's remaining energy moved ${dr >= 0 ? '+' : ''}${dr.toFixed(1)} kWh while the monitor measured ${net >= 0 ? '+' : ''}${net.toFixed(2)} kWh at the pack. These should be close.</div>` : '') +
+      (st.life ? `<div style="${dim};margin-top:8px;text-align:left">Lifetime: ${(st.life.chg / 1000).toFixed(1)} MWh in, ${(st.life.dis / 1000).toFixed(1)} MWh out, about ${Math.round(st.life.chg / e.full)} full cycles.</div>` : '') +
+      `<div style="${dim};margin-top:8px;text-align:left;font-size:12px">Charge level = (remaining − reserve) ÷ (full pack − reserve). On a 2016 Model X 75D it matched the car's own % display. The labels are borrowed from a similar Tesla layout; "Field 5" did not behave like the label it came with, so it is shown unlabeled. Compare Charge level with the % on your screen.</div>`;
+  }
+  function capCalc() {
+    const box = $n('#tmCap'), a = parseFloat($n('#tmS').value), b = parseFloat($n('#tmE').value), nw = parseFloat(String($n('#tmN').value).replace(',', '.'));
+    const net = (st.whIn - st.whOut) / 1000; // kWh at the pack, charging positive
+    if (!(a >= 0 && b >= 0 && a <= 100 && b <= 100) || a === b) { box.innerHTML = '<span style="color:var(--label3);font-size:14px">Enter both percentages to see the estimate.</span>'; return; }
+    const d = b - a, cap = net / (d / 100), pm = Math.round(100 / Math.abs(d));
+    let warn = '';
+    if (Math.abs(net) < 0.3) warn = 'Not enough energy measured yet. Keep charging with the monitor running.';
+    else if (cap < 0) warn = 'Direction mismatch: flip the "Charging is +/−" switch.';
+    else if (cap < 20 || cap > 130) warn = 'This looks wrong for a Tesla pack, so the current decode may be off.';
+    else if (Math.abs(d) < 10) warn = 'Under 10 points of charge: very rough. Charge further for a better number.';
+    if (warn && (Math.abs(net) < 0.3 || cap < 0 || cap < 20 || cap > 130)) { box.innerHTML = `<span style="color:var(--orange-text);font-size:14px">${esc(warn)}</span><div class="mono" style="font-size:12px;color:var(--label3);margin-top:4px">${net.toFixed(2)} kWh over ${d} points</div>`; return; }
+    const h = nw > 0 ? cap / nw * 100 : null, usableBms = st.en ? st.en.full - st.en.buf : null;
+    box.innerHTML = `<div class="tm-big">${cap.toFixed(1)}<span style="font-size:18px"> kWh</span></div><div style="color:var(--label2);font-size:14px;margin-top:4px">usable capacity, about ±${pm}%</div>` + (h ? `<div style="font-weight:600;margin-top:6px">${h.toFixed(0)}% of new (${nw} kWh)</div>` : '<div style="color:var(--label3);font-size:13px;margin-top:6px">Add the new capacity to get a health percentage.</div>') + (usableBms ? `<div style="color:var(--label2);font-size:13px;margin-top:8px">The car's own report says ${usableBms.toFixed(1)} kWh usable, so this measurement is ${((cap / usableBms - 1) * 100).toFixed(0)}% ${cap >= usableBms ? 'above' : 'below'} it.</div>` : '') + (warn ? `<div style="color:var(--orange-text);font-size:13px;margin-top:6px">${esc(warn)}</div>` : '');
+  }
+  ['#tmS', '#tmE', '#tmN'].forEach((q) => $n(q).addEventListener('input', capCalc));
+  let sec = 0;
+  function tick() {
+    const now = Date.now(), p = pwr();
+    if (p != null && st.last) { const wh = p * 1000 * ((now - st.last) / 3600000); if (wh > 0) st.whIn += wh; else st.whOut -= wh; }
+    st.last = now; sec += 0.25;
+    if (sec >= 1 && st.v != null) { sec = 0; st.hist.push({ v: st.v, a: st.a, p }); if (st.hist.length > 180) st.hist.shift(); }
+    $n('#tmRate').textContent = st.running ? st.frames + ' frames' : '';
+    if (st.running && st.lastFrame && now - st.lastFrame > 6000) chip('bad', 'No data. Wake the car'); else if (st.running && st.frames) chip('ok', 'Live');
+    draw();
+  }
+  async function read12() {
+    const m = st.mon; if (!m || !st.running || st.b12 || m.dead) return; st.b12 = true;
+    try {
+      await m.halt(); const o = await m.cmd('ATRV', 2500); const x = o.match(/(\d{1,2}\.\d)\s*V/i);
+      if (x) { st.v12 = parseFloat(x[1]); st.t12 = Date.now(); }
+      if (st.running && st.mon === m && !m.dead) await m.startMasked(TM_ID, '52F');
+    } catch (e) {} st.b12 = false; draw12();
+  }
+  function draw12() {
+    const v = st.v12; if (v == null) { $n('#tm12').textContent = '--'; $n('#tm12s').textContent = st.running ? 'Reading…' : 'Waiting'; return; }
+    const lab = v < 11.8 ? ['Low: weak or discharged', 'var(--red)'] : v < 12.4 ? ['Fair', 'var(--orange-text)'] : v < 15.2 ? ['Normal', 'var(--green)'] : ['High: check charging', 'var(--red)'];
+    $n('#tm12').textContent = v.toFixed(1) + ' V'; const e = $n('#tm12s'); e.textContent = lab[0]; e.style.color = lab[1];
+  }
+  async function stop(msg) {
+    st.running = false; clearInterval(st.tick); clearInterval(st.t12i); clearTimeout(st.t12o); try { if (st.wake) st.wake.release(); } catch (e) {} st.wake = null;
+    if (st.mon) { const m = st.mon; st.mon = null; await m.stop(); }
+    chip(msg ? 'bad' : '', msg || 'Stopped'); $n('#tmGo').textContent = 'Connect & start'; $n('#tmGo').disabled = false;
+  }
+  $n('#tmGo').onclick = async () => {
+    if (st.running) { await stop(); return; }
+    if (!navigator.bluetooth) { chip('bad', 'No Web Bluetooth'); return; }
+    const mon = st.mon = new CanMonitor(); const btn = $n('#tmGo'); btn.disabled = true; chip('busy', 'Connecting…');
+    mon.onEnd = (m) => stop(m);
+    mon.onFrame = (id, b) => { if (id === TM_BMS) { const e = tmEnergy(b); if (e) { st.en = e; if (st.rem0 == null) st.rem0 = e.rem; } return; } if (id === TM_KWH) { const l = tmLife(b); if (l) st.life = l; return; } if (id !== TM_ID) return; st.frames++; st.lastFrame = Date.now(); st.raw = id + ' ' + b.map(hex2).join(' '); const d = tmDecode(b); if (d && d.v > 150 && d.v < 500) { st.v = d.v; st.a = d.a; } };
+    try {
+      await mon.open(); chip('busy', 'Starting…'); await mon.startMasked(TM_ID, '52F'); // mask 52F passes 102, 382 and 3D2 (plus a few IDs this car does not use)
+      st.running = true; st.last = Date.now(); st.lastFrame = Date.now(); st.tick = setInterval(tick, 250); st.t12o = setTimeout(read12, 4000); st.t12i = setInterval(read12, 30000);
+      try { if (navigator.wakeLock) st.wake = await navigator.wakeLock.request('screen'); } catch (e) {}
+      btn.textContent = 'Stop'; btn.disabled = false; chip('busy', 'Waiting for data…');
+    } catch (e) { st.mon = null; try { await mon.stop(); } catch (e2) {} const m = friendlyError(e); chip(m ? 'bad' : '', m ? 'Failed' : 'Not connected'); if (m) $n('#tmRaw').textContent = m; btn.disabled = false; }
+  };
+  draw();
+  openSheet('Tesla pack monitor', n, () => { stop(); });
+}
+$('rowTMon').addEventListener('click', openTeslaMonitor);
+
+function openTeslaAlert() {
+  const SUB = { BMS: 'Battery management system (high-voltage pack)', DI: 'Drive inverter / motor', DIF: 'Front drive inverter', DIR: 'Rear drive inverter', DIS: 'Drive inverter', APP: 'Autopilot / driver assistance', VCFRONT: 'Front body controller', VCLEFT: 'Left body controller', VCRIGHT: 'Right body controller', VCSEC: 'Security / key controller', GTW: 'Gateway', CP: 'Charge port', CHG: 'On-board charger', PCS: 'Power conversion (charger/DC-DC)', THC: 'Thermal controller (heating and cooling)', UI: 'Touchscreen / infotainment', EPAS: 'Power steering', ESP: 'Stability / ABS', IBST: 'Brake booster', RCM: 'Airbag / restraints', PM: 'Pyrofuse / power management', HVP: 'High-voltage pack controller', SCCM: 'Steering column module', TAS: 'Air suspension', PTC: 'Cabin heater' };
+  const LEV = { w: 'warning (usually a lower-severity message)', f: 'fault', a: 'alert' };
+  let recent = jsGet('tesla_alerts', []);
+  const n = html(`
+    <p class="foot" style="margin:0 0 10px">On the car: Controls → Service → Service Mode → Service Alerts. Type a code exactly as shown, like BMS_w080. LazScan cannot read these from the car; it only helps you look them up.</p>
+    <div class="card pad stack">
+      <div class="field"><label for="alC">Alert code</label><input id="alC" class="input mono" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="BMS_w080"></div>
+      <div class="field"><label for="alT">Text shown with it (optional)</label><input id="alT" class="input" placeholder="e.g. Battery needs service"></div>
+      <div id="alHint" style="font-size:14px;color:var(--label2)"></div>
+      <a class="btn tint" id="alWeb" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">Search this code online</a>
+      <button class="btn" id="alAI">Explain with LazAI</button>
+    </div>
+    <div class="card pad" id="alOut" style="margin-top:10px;display:none"></div>
+    <div class="card" id="alRec" style="margin-top:10px;display:none"></div>
+    <p class="tm-note">LazAI may not know every Tesla-specific code and can be wrong. Treat it as a starting point. The Tessie alert database and Tesla's Service Manual are the authority. Never act on high-voltage warnings by yourself; if the car says to stop driving or a pack warning is active, call Tesla service.</p>`);
+  const $n = (q) => n.querySelector(q);
+  const norm = () => $n('#alC').value.trim().replace(/\s+/g, '_');
+  function parse(c) {
+    const m = c.match(/^([A-Za-z]+)_?([wfaWFA])?_?(\d{1,4})?/); if (!m) return null;
+    const sub = m[1].toUpperCase(); return { sub, desc: SUB[sub], lev: m[2] ? LEV[m[2].toLowerCase()] : null, num: m[3] };
+  }
+  function hint() {
+    const c = norm(); const p = c ? parse(c) : null;
+    $n('#alHint').innerHTML = p ? (p.desc ? `<b>${esc(p.sub)}</b>: ${esc(p.desc)}.` : `Unknown prefix ${esc(p.sub)}.`) + (p.lev ? ` Type: ${esc(p.lev)}.` : '') : '';
+    $n('#alWeb').href = 'https://www.google.com/search?q=' + encodeURIComponent((c || 'Tesla service alert') + ' tesla alert tessie');
+    $n('#alWeb').style.opacity = c ? 1 : .5;
+  }
+  $n('#alC').addEventListener('input', hint); hint();
+  function drawRec() {
+    const box = $n('#alRec'); box.style.display = recent.length ? '' : 'none';
+    box.innerHTML = '<div class="sect" style="margin:12px 16px 0">Recent lookups</div>' + recent.map((r, i) => `<button class="row tap" data-i="${i}"><div class="grow mono">${esc(r.c)}<small style="font-family:inherit">${esc(r.t || '')}</small></div></button>`).join('');
+  }
+  drawRec();
+  $n('#alRec').addEventListener('click', (e) => { const b = e.target.closest('[data-i]'); if (!b) return; const r = recent[+b.dataset.i]; $n('#alC').value = r.c; $n('#alT').value = r.t || ''; hint(); });
+  $n('#alAI').onclick = async () => {
+    const c = norm(), t = $n('#alT').value.trim(); const out = $n('#alOut');
+    if (!c) { $n('#alC').focus(); return; }
+    if (!getKey()) { out.style.display = ''; out.innerHTML = '<b>Add a Groq key</b><p class="foot">LazAI uses your own free Groq key. Add it in Settings, then try again.</p>'; return; }
+    const btn = $n('#alAI'); btn.disabled = true; btn.textContent = 'Thinking…'; out.style.display = ''; out.innerHTML = '<span class="dots"><span></span><span></span><span></span></span>';
+    recent = [{ c, t }, ...recent.filter((r) => r.c !== c)].slice(0, 12); jsSet('tesla_alerts', recent); drawRec();
+    try {
+      const p = parse(c);
+      const msgs = [{ role: 'system', content: 'You are LazAI inside LazScan. The user owns a 2016 Tesla Model X 75D and is reading a Tesla Service Mode alert code. Explain in plain words: what subsystem it is, what the code most likely means, how serious it is, what the owner can safely check, and when to call Tesla service. IMPORTANT: you may not reliably know Tesla-specific alert codes. If you do not recognise the exact code, say so clearly and explain only what the prefix and wording support, never guess a specific cause. Never suggest bypassing, resetting or discharging the high-voltage system; refer to Tesla service for anything involving the battery pack, contactors, coolant or airbags. Keep it under 200 words, short markdown lists.' }, { role: 'user', content: `Alert code: ${c}\nPrefix meaning (from LazScan table): ${p && p.desc ? p.desc : 'unknown'}\nText shown on screen: ${t || '(not given)'}\nVehicle context: 2016 Model X 75D, ~10 years old.` }];
+      const a = await groqChat(msgs); out.innerHTML = md(a || 'No answer came back. Try again.') + '<p class="foot" style="margin-top:10px">AI answer. Verify with the search link above.</p>';
+    } catch (e) { out.innerHTML = '<span style="color:var(--orange-text)">' + esc(e.message) + '</span>'; }
+    btn.disabled = false; btn.textContent = 'Explain with LazAI';
+  };
+  openSheet('Tesla alert lookup', n);
+}
+$('rowTAlert').addEventListener('click', openTeslaAlert);
+
+function openTeslaHub() {
+  S.backToHub = false;
+  const item = (id, t, d, beta) => `<button class="row tap" data-r="${id}"><div class="grow">${t}${beta ? ' <span class="badge low" style="margin-left:6px">BETA</span>' : ''}<small>${d}</small></div>${CHEV}</button>`;
+  const n = html(`
+    <div class="sect" style="margin-top:0">Check a car</div>
+    <div class="card">${item('rowTEst', 'Used Tesla battery estimate', 'Health from the range and % on any Tesla screen. No adapter needed.', false)}</div>
+    <div class="sect">Scan your Tesla</div>
+    <div class="card">${item('rowTMon', 'Pack monitor', 'Live pack voltage, current, power, energy report and 12 V. Needs a Tesla diagnostic cable.', true)}${item('rowTAlert', 'Alert lookup', 'Explain a code from Service Mode → Service Alerts, with LazAI.', true)}</div>
+    <div class="sect">Advanced</div>
+    <div class="card">${item('rowProbe', 'CAN probe', 'Check which messages your adapter can hear. Read-only.', false)}${item('rowLog', 'CAN logger', 'Capture every message the car sends (about 4 min).', false)}</div>
+    <p class="tm-note">Tesla scanning is read-only: LazScan only listens to the car, it never sends commands. It cannot read stored alert codes from the car. For pack warnings or anything high-voltage, contact Tesla service.</p>`);
+  n.addEventListener('click', (e) => { const b = e.target.closest('[data-r]'); if (!b) return; S.backToHub = true; $(b.dataset.r).click(); });
+  openSheet('Tesla tools', n);
+}
+$('rowTesla').addEventListener('click', openTeslaHub); $('rowTesla2').addEventListener('click', openTeslaHub);
+
+function openTeslaEstimate() {
+  const bands = [{ min: 92, c: 'var(--green)', t: 'Excellent' }, { min: 86, c: 'var(--blue)', t: 'Good' }, { min: 80, c: 'var(--yellow)', t: 'Fair' }, { min: 0, c: 'var(--red)', t: 'Worn: ask questions' }];
+  const n = html(`
+    <p style="color:var(--label2);margin:4px 0 12px">Read three numbers off the car's screen. For best accuracy, use a charge of 80% or more, a warm battery, and the same distance unit for both ranges.</p>
+    <div class="card pad"><div class="te-in">
+      <div class="field full"><label for="teLabel">Label (optional)</label><input id="teLabel" class="input" placeholder="2018 Model 3 LR, red" autocomplete="off"></div>
+      <div class="field"><label for="teOrig">Range when new</label><input id="teOrig" class="input" inputmode="decimal" placeholder="237"></div>
+      <div class="field"><label for="teCur">Range shown now</label><input id="teCur" class="input" inputmode="decimal" placeholder="205"></div>
+      <div class="field full"><label for="tePct">Battery % shown</label><input id="tePct" class="input" inputmode="decimal" placeholder="100"></div>
+    </div></div>
+    <div class="card pad" id="teRes" style="margin-top:12px;text-align:center"><div class="empty" style="padding:14px"><b>Enter the three numbers</b>The estimate appears here.</div></div>
+    <div class="stack" style="margin-top:12px"><button class="btn tint" id="teSave" disabled>Save to compare</button></div>
+    <div class="sect">Saved</div><div class="card" id="teList"></div>
+    <p class="tm-note">Range when new is the original rated range for that exact trim, year and wheel size (the window sticker or fueleconomy.gov has it). Different wheels change the range the car shows. This estimates range loss, not an official battery test. Software updates can change the rated range shown, so treat it as a screening number. Tesla's battery warranty covers capacity down to a minimum level for a set term; check the car's own terms.</p>`);
+  const $n = (q) => n.querySelector(q);
+  let cur = null;
+  const num = (id) => parseFloat(String($n(id).value).replace(',', '.'));
+  const calc = () => {
+    const o = num('#teOrig'), c = num('#teCur'), p = num('#tePct');
+    $n('#teSave').disabled = true; cur = null;
+    if (!(o > 0 && c > 0 && p > 0 && p <= 100)) { $n('#teRes').innerHTML = '<div class="empty" style="padding:14px"><b>Enter the three numbers</b>The estimate appears here.</div>'; return; }
+    const full = c / (p / 100), h = full / o * 100, band = bands.find((b) => h >= b.min), pos = Math.max(0, Math.min(100, (h - 60) / 50 * 100));
+    const warn = p < 50 ? 'Low charge makes this less accurate. Re-check at 80% or more.' : h > 102 ? 'Reads above new. Re-check the original range and units.' : '';
+    cur = { label: $n('#teLabel').value.trim(), orig: o, cur: c, pct: p, health: Math.round(h * 10) / 10, full: Math.round(full) };
+    $n('#teRes').innerHTML = `<div class="tm-big" style="color:${band.c}">${h.toFixed(0)}%</div><div style="font-weight:600;margin-top:4px">${band.t}</div>
+      <div style="color:var(--label2);font-size:14px;margin-top:2px">About ${Math.round(full)} at 100%, down ${Math.max(0, Math.round(o - full))} from ${o} (${Math.max(0, 100 - h).toFixed(0)}% loss)</div>
+      <div class="te-band"><span style="flex:40;background:var(--red)"></span><span style="flex:12;background:var(--yellow)"></span><span style="flex:12;background:var(--blue)"></span><span style="flex:36;background:var(--green)"></span><b class="te-tick" style="left:20%"></b></div>
+      <div class="te-mark"><i style="left:${pos}%"></i></div><div class="te-lab"><span style="left:0%">60</span><span style="left:20%">70</span><span style="left:40%">80</span><span style="left:52%">86</span><span style="left:64%">92</span><span style="left:100%">110</span></div>
+      <div style="font-size:13px;margin-top:10px;color:${h >= 70 ? 'var(--label2)' : 'var(--red)'}">${h >= 70 ? 'Above' : 'Below'} Tesla's 70% warranty floor (the black tick). Check the car's own warranty term.</div>
+      ${warn ? `<div class="banner" style="margin:12px 0 0;text-align:left">${I.warn}<div>${esc(warn)}</div></div>` : ''}`;
+    $n('#teSave').disabled = false;
+  };
+  const list = () => {
+    const a = jsGet('tesla_est', []);
+    $n('#teList').innerHTML = a.length ? a.map((x, i) => `<div class="row"><div class="grow">${esc(x.label || 'Unnamed Tesla')}<small>${x.cur} of ${x.orig} at ${x.pct}% · about ${x.full} at 100%</small></div><b style="font-size:19px">${x.health.toFixed(0)}%</b><button class="link" data-del="${i}" aria-label="Delete">✕</button></div>`).join('') : '<div class="empty" style="padding:18px"><b>Nothing saved yet</b>Save each car you check to compare them.</div>';
+  };
+  ['#teLabel', '#teOrig', '#teCur', '#tePct'].forEach((q) => $n(q).addEventListener('input', calc));
+  $n('#teSave').onclick = () => { if (!cur) return; const a = jsGet('tesla_est', []); a.unshift(cur); jsSet('tesla_est', a.slice(0, 30)); list(); toast('Saved', 'ok'); };
+  $n('#teList').addEventListener('click', (e) => { const d = e.target.closest('[data-del]'); if (!d) return; const a = jsGet('tesla_est', []); a.splice(+d.dataset.del, 1); jsSet('tesla_est', a); list(); });
+  list(); openSheet('Used Tesla battery estimate', n);
+}
+$('rowTEst').addEventListener('click', openTeslaEstimate);
+
+
+// ============================================================
+//  CAN LOGGER (beta, read-only): sweeps the 11-bit ID space, then records each ID that talks.
+// ============================================================
+function openCanLogger() {
+  if (S.transport) { teardown(); setMode('idle'); }
+  const n = html(`<p style="color:var(--label2);margin:4px 0 12px">Plug the adapter into the Tesla cable and wake the car. Keep the screen on. Run this once now and again after the battery % changes (for example, 10 minutes into a charge). Read-only.</p>
+    <div class="card pad stack">
+      <div class="te-in">
+        <div class="field"><label for="lgPct">Battery % on screen</label><input id="lgPct" class="input" inputmode="decimal" placeholder="75"></div>
+        <div class="field"><label for="lgSpd">Sweep</label><select id="lgSpd" class="input"><option value="0.8">Quick (~3 min)</option><option value="1.8">Thorough (~6 min)</option></select></div>
+        <div class="field full"><label for="lgNote">Notes (charging? parked? doors?)</label><input id="lgNote" class="input" placeholder="charging at home, 32 A"></div>
+      </div>
+      <button class="btn" id="lgGo">Start logging</button>
+      <div class="tm-bar" style="margin:0"><i id="lgBar" style="left:0;width:0;background:var(--blue)"></i></div>
+      <div id="lgStat" style="font-size:14px;color:var(--label2)">Ready.</div>
+    </div>
+    <textarea id="lgOut" class="input mono" rows="12" readonly style="margin-top:12px;font-size:11px;width:100%" placeholder="The log appears here."></textarea>
+    <div class="two" style="margin-top:10px"><button class="btn tint" id="lgCopy">Copy log</button><button class="btn tint" id="lgSave">Save file</button></div>
+    <p class="tm-note">Slow messages can be missed in the quick sweep. If a log looks thin, run Thorough.</p>`);
+  const $n = (q) => n.querySelector(q);
+  let cancel = false, running = false, mon = null;
+  const h3 = (v) => v.toString(16).toUpperCase().padStart(3, '0');
+  const setBar = (f, t) => { $n('#lgBar').style.width = Math.round(f * 100) + '%'; $n('#lgStat').textContent = t; };
+  async function run() {
+    if (running) { cancel = true; $n('#lgStat').textContent = 'Stopping…'; return; }
+    if (!navigator.bluetooth) { $n('#lgStat').textContent = 'This browser cannot use Web Bluetooth.'; return; }
+    running = true; cancel = false; const btn = $n('#lgGo'); btn.textContent = 'Stop'; $n('#lgOut').value = '';
+    const sweepSec = parseFloat($n('#lgSpd').value), t00 = Date.now(); let wake = null;
+    mon = new CanMonitor(); mon.onEnd = () => { cancel = true; };
+    let cur = null; mon.onFrame = (id, b) => { if (cur) cur(id, b); };
+    try {
+      setBar(0, 'Connecting…'); await mon.open();
+      try { if (navigator.wakeLock) wake = await navigator.wakeLock.request('screen'); } catch (e) {}
+      // 1) sweep every 16-ID block
+      const seen = {};
+      for (let p = 0; p < 128 && !cancel; p++) {
+        setBar(p / 128 * 0.5, 'Sweeping IDs ' + h3(p * 16) + '–' + h3(p * 16 + 15) + ' · found ' + Object.keys(seen).length);
+        cur = (id) => { seen[id] = (seen[id] || 0) + 1; };
+        await mon.startMasked(h3(p * 16), '7F0'); await sleep(sweepSec * 1000); await mon.halt();
+      }
+      cur = null;
+      const ids = Object.keys(seen).sort();
+      // 2) dwell on each ID
+      const data = {};
+      for (let i = 0; i < ids.length && !cancel; i++) {
+        const id = ids[i], secs = (seen[id] <= 3 ? 5 : 2.5), fr = [], t0 = Date.now();
+        setBar(0.5 + i / Math.max(1, ids.length) * 0.5, 'Recording ' + id + ' (' + (i + 1) + ' of ' + ids.length + ')');
+        cur = (fid, b) => { if (fid === id && fr.length < 400) fr.push([Date.now() - t0, b]); };
+        await mon.startMasked(id, '7FF'); await sleep(secs * 1000); await mon.halt(); cur = null;
+        data[id] = { fr, secs: (Date.now() - t0) / 1000 };
+      }
+      // 3) format
+      const hx = (b) => b.map(hex2).join(' ');
+      let o = `LazScan ${VERSION} CAN log · ${new Date().toLocaleString()}\nBattery % on screen: ${$n('#lgPct').value || '?'} · Notes: ${$n('#lgNote').value || '-'}\nSweep seconds/block: ${sweepSec} · IDs found: ${ids.length}${cancel ? ' · STOPPED EARLY' : ''}\nSweep counts: ${ids.map((k) => k + '×' + seen[k]).join(' ')}\n`;
+      for (const id of Object.keys(data)) {
+        const { fr, secs } = data[id]; if (!fr.length) { o += `\nID ${id}: no frames while recording\n`; continue; }
+        const len = Math.max(...fr.map((f) => f[1].length)), mn = Array(len).fill(255), mx = Array(len).fill(0);
+        for (const f of fr) f[1].forEach((v, k) => { if (v < mn[k]) mn[k] = v; if (v > mx[k]) mx[k] = v; });
+        const step = Math.max(1, Math.floor(fr.length / 8)), pick = fr.length <= 12 ? fr : fr.filter((f, k) => k % step === 0).slice(0, 8);
+        o += `\nID ${id}: ${fr.length} frames in ${secs.toFixed(1)}s (${(fr.length / secs).toFixed(1)}/s) len=${len}\n  min ${hx(mn)}\n  max ${hx(mx)}\n` + pick.map((f) => `  +${String(f[0]).padStart(4)}ms ${hx(f[1])}`).join('\n') + '\n';
+      }
+      $n('#lgOut').value = o; setBar(1, cancel ? 'Stopped. Partial log below.' : 'Done in ' + Math.round((Date.now() - t00) / 1000) + 's. Copy or save the log.');
+    } catch (e) { const m = friendlyError(e); $n('#lgStat').textContent = m || 'No adapter selected.'; }
+    finally { try { if (wake) wake.release(); } catch (e) {} try { await mon.stop(); } catch (e) {} mon = null; running = false; btn.textContent = 'Start logging'; }
+  }
+  $n('#lgGo').onclick = run;
+  $n('#lgCopy').onclick = async () => { const v = $n('#lgOut').value; if (!v) return; try { await navigator.clipboard.writeText(v); toast('Copied', 'ok'); } catch (e) { $n('#lgOut').select(); toast('Select and copy the text'); } };
+  $n('#lgSave').onclick = () => { const v = $n('#lgOut').value; if (!v) return; const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([v], { type: 'text/plain' })); a.download = 'lazscan-can-log-' + Date.now() + '.txt'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); };
+  openSheet('CAN logger', n, () => { cancel = true; });
+}
+$('rowLog').addEventListener('click', openCanLogger);
+
 let installEvt = null;
 window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvt = e; $('rowInstall').hidden = false; });
 window.addEventListener('appinstalled', () => { installEvt = null; $('rowInstall').hidden = true; toast('Installed', 'ok'); });
