@@ -36,7 +36,7 @@ OBD-II diagnostics in an installable web app. Reads fault codes and live data fr
 
 ## Tesla tools (beta)
 
-Open **Tesla tools** on the Scan screen (or Settings).
+Open **Settings → Tesla → Tesla tools**. It is kept out of the main screen so it never gets in the way when scanning other cars.
 
 | Tool | What it does | Needs |
 |---|---|---|
@@ -106,10 +106,11 @@ Pages: **Settings → Pages → Deploy from branch `main` / root**. After changi
 
 | Version | Notes |
 |---|---|
+| v2.9.1 | Tesla tools entry lives only in Settings. |
 | v2.9.0 | Back-button guard, background update checks, Check for updates, new banner. |
 | v2.8.0 | Cleaner Tesla pickers, kWh removed from the picker, print/PDF export of saved estimates. |
 | v2.7.0 | Model and trim picker fills rated range for the used-Tesla estimate. |
-| v2.6.0 | Tesla tools gathered in one place on the Scan screen and Settings. |
+| v2.6.0 | Tesla tools gathered into one place. |
 | v2.5.0 | 12 V reading and alert-code lookup with LazAI. |
 | v2.0.2–v2.4.1 | Rewritten BLE connection (fixes "GATT not supported" on Veepeak). Tesla pack monitor, energy report, capacity-from-charge, used-Tesla estimator, CAN probe and logger. |
 | v2.0.1 | Renamed to LazScan. New high-resolution icon and wordmark. |
