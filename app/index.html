@@ -243,8 +243,6 @@ button{cursor:pointer;background:none;border:0}
     </div>
   </div>
 
-  <div class="card" style="margin-top:12px"><button class="row tap" id="rowTesla"><div class="grow"><b>Tesla tools</b><small>Battery monitor, used-car estimate, alert lookup</small></div><svg class="chev" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l6 6-6 6"/></svg></button></div>
-
   <div id="liveArea" hidden>
     <div class="sect">Vehicle</div>
     <div class="card">
@@ -411,7 +409,7 @@ button{cursor:pointer;background:none;border:0}
 //  LazScan — app logic
 //  Single file: ELM327 engine, UI, Groq, NHTSA, NFC.
 // ============================================================
-const VERSION = 'v2.9.0'; // keep in sync with CACHE_NAME in sw.js
+const VERSION = 'v2.9.1'; // keep in sync with CACHE_NAME in sw.js
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -1630,7 +1628,7 @@ function openTeslaHub() {
   n.addEventListener('click', (e) => { const b = e.target.closest('[data-r]'); if (!b) return; S.backToHub = true; $(b.dataset.r).click(); });
   openSheet('Tesla tools', n);
 }
-$('rowTesla').addEventListener('click', openTeslaHub); $('rowTesla2').addEventListener('click', openTeslaHub);
+$('rowTesla2').addEventListener('click', openTeslaHub);
 
 // Factory rated range by trim, from the cheat sheet John supplied (EPA miles; ranges because wheels and model years differ). Not independently verified.
 const TESLA_TRIMS = [
